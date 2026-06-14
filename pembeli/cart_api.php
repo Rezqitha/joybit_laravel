@@ -1,5 +1,13 @@
 <?php
 require_once '../db_connect.php';
+// API Key Validation
+$api_key = isset($_GET['api_key']) ? $_GET['api_key'] : '';
+if ($api_key !== 'joybite123') {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid API Key']);
+    exit;
+}
+
 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");

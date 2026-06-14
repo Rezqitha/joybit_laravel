@@ -232,7 +232,7 @@
             <span id="grand-total">Rp 0</span>
         </div>
         
-        <button class="btn-checkout">
+        <button class="btn-checkout" onclick="checkout()">
             Lanjut ke Pembayaran
             <span class="material-symbols-outlined">payments</span>
         </button>
@@ -251,7 +251,7 @@
         }
     }
 
-    const API_URL = 'cart_api.php'; 
+    const API_URL = 'cart_api.php?api_key=joybite123'; 
 
     async function loadCart() {
         try {
@@ -333,8 +333,40 @@
 
     async function deleteItem(id) {
         if (confirm('Hapus item?')) {
-            await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
+            await fetch(`${API_URL}&id=${id}`, { method: 'DELETE' });
             loadCart();
+        }
+    }
+
+    async function checkout() {
+        const grandTotalText = document.getElementById('grand-total').innerText;
+        const total = parseInt(grandTotalText.replace(/[^0-9]/g, ''));
+        if (total <= 15000) {
+            alert("Keranjang Anda masih kosong!");
+            return;
+        }
+
+        const nama = localStorage.getItem("username") || "Pembeli Tanpa Nama";
+        
+        try {
+            const res = await fetch('../penjual/pesanan_api.php?api_key=joybite123', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nama_pembeli: nama, total_harga: total })
+            });
+            const hasil = await res.json();
+            
+            if (hasil.status === 'success') {
+                alert("Yeay! Pesanan berhasil dibuat dan otomatis masuk ke Daftar Pesanan Penjual.");
+                // Secara ideal, Anda bisa menghapus isi keranjang di database (DELETE all),
+                // namun untuk mempermudah, kita redirect kembali ke menu.
+                window.location.href = "menu.php";
+            } else {
+                alert("Gagal membuat pesanan: " + hasil.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Terjadi kesalahan sistem saat checkout.");
         }
     }
 

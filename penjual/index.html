@@ -72,6 +72,27 @@
             </table>
         </div>
 
+        <div class="header-top">
+            <h2>Daftar Pesanan Pembeli</h2>
+        </div>
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Pesanan</th>
+                        <th>Nama Pembeli</th>
+                        <th>Total Harga</th>
+                        <th>Status</th>
+                        <th>Tanggal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelPesanan">
+                    <!-- Data pesanan will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
         <div class="section-title">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -125,7 +146,7 @@
     const baseURL = 'http://localhost/api_joybite/penjual';
 
     function muatDataDessert() {
-        fetch(`${baseURL}/dessert_api.php`)
+        fetch(`${baseURL}/dessert_api.php?api_key=joybite123`)
             .then(response => response.json())
             .then(hasil => {
                 const tabel = document.getElementById('tabelDessert');
@@ -159,7 +180,7 @@
 
     function hapusDessert(id) {
         if (confirm("Apakah kamu yakin ingin menghapus menu ini?")) {
-            fetch(`${baseURL}/dessert_api.php?id=${id}`, { method: 'DELETE' })
+            fetch(`${baseURL}/dessert_api.php?id=${id}&api_key=joybite123`, { method: 'DELETE' })
                 .then(response => response.json())
                 .then(hasil => {
                     if (hasil.status === "success") {
@@ -170,6 +191,57 @@
                     }
                 })
                 .catch(error => console.error('Error:', error));
+        }
+    }
+
+    function muatDataPesanan() {
+        fetch(`${baseURL}/pesanan_api.php?api_key=joybite123`)
+            .then(response => response.json())
+            .then(hasil => {
+                const tabel = document.getElementById('tabelPesanan');
+                tabel.innerHTML = ''; 
+                if (hasil.status === "success" && hasil.data.length > 0) {
+                    hasil.data.forEach(item => {
+                        tabel.innerHTML += `
+                            <tr>
+                                <td>#${item.id}</td>
+                                <td>${item.nama_pembeli}</td>
+                                <td>Rp. ${parseInt(item.total_harga).toLocaleString('id-ID')}</td>
+                                <td><b>${item.status}</b></td>
+                                <td>${item.tanggal}</td>
+                                <td class="action-links">
+                                    <span class="link-edit" onclick="updateStatusPesanan(${item.id})">[Proses]</span>
+                                    <span class="link-delete" onclick="hapusPesanan(${item.id})">[Hapus]</span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tabel.innerHTML = `<tr><td colspan="6" style="text-align: center;">Belum ada pesanan</td></tr>`;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function updateStatusPesanan(id) {
+        if (confirm("Ubah status pesanan ini menjadi Selesai?")) {
+            fetch(`${baseURL}/pesanan_api.php?api_key=joybite123`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, status: 'Selesai' })
+            })
+            .then(res => res.json())
+            .then(res => { alert(res.message); muatDataPesanan(); })
+            .catch(err => console.error(err));
+        }
+    }
+
+    function hapusPesanan(id) {
+        if (confirm("Yakin ingin menghapus pesanan ini?")) {
+            fetch(`${baseURL}/pesanan_api.php?id=${id}&api_key=joybite123`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(res => { alert(res.message); muatDataPesanan(); })
+            .catch(err => console.error(err));
         }
     }
 
@@ -193,7 +265,7 @@
         e.preventDefault(); 
 
         const idEdit = document.getElementById('edit_id').value;
-        const urlTarget = `${baseURL}/dessert_api.php`;
+        const urlTarget = `${baseURL}/dessert_api.php?api_key=joybite123`;
         const methodType = idEdit ? 'PUT' : 'POST';
 
         const dataKirim = {
@@ -225,6 +297,7 @@
     });
 
     muatDataDessert();
+    muatDataPesanan();
     </script>
 </body>
 </html>

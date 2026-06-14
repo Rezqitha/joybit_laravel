@@ -55,6 +55,8 @@
     <a href="#" class="logo">Joybite</a>
     <nav>
         <a href="#"><span class="material-symbols-outlined">home</span> Beranda</a>
+        <a href="Keranjang.php"><span class="material-symbols-outlined">shopping_basket</span></a>
+        <a href="ulasan.html" style="font-size: 1rem; margin-right: auto; margin-left: 10px; font-weight: bold; color: #333; text-decoration: none;">Ulasan</a>
         <a href="#"><span class="material-symbols-outlined">menu_book</span> Menu</a>
         <div class="search-bar">
             <span class="material-symbols-outlined">search</span>
@@ -104,8 +106,8 @@
         }
     }
 
-    const MENU_API = 'produk_api.php';
-    const CART_API = 'cart_api.php';
+    const MENU_API = 'produk_api.php?api_key=joybite123';
+    const CART_API = 'cart_api.php?api_key=joybite123';
 
     async function fetchMenu() {
         try {

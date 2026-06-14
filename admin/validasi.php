@@ -1,16 +1,51 @@
+<?php
+session_start();
+// Halaman Admin "Full PHP" - Sesuai Syarat Dosen
+require_once '../db_connect.php';
+
+// Proses Hapus Data
+if (isset($_GET['delete_id'])) {
+    $del_id = $_GET['delete_id'];
+    $conn->query("DELETE FROM validasi_prdouk WHERE id_validasi = $del_id");
+    header("Location: validasi.php");
+    exit;
+}
+
+// Proses Tambah Data
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_produk'])) {
+    $nama = $_POST['nama_produk'];
+    $toko = $_POST['nama_toko'];
+    $deskripsi = $_POST['deskripsi'];
+    $status = "Menunggu Validasi";
+    $dibuat_pada = date('Y-m-d');
+
+    $stmt = $conn->prepare("INSERT INTO validasi_prdouk (nama_produk, nama_toko, status, deskripsi, dibuat_pada) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $nama, $toko, $status, $deskripsi, $dibuat_pada);
+    $stmt->execute();
+    header("Location: validasi.php");
+    exit;
+}
+
+// Ambil Semua Data Validasi
+$result = $conn->query("SELECT * FROM validasi_prdouk ORDER BY id_validasi DESC");
+$products = [];
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $products[] = $row;
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Joybite - Validasi Produk</title>
-    
+    <title>Joybite - Validasi Produk (Full PHP)</title>
     <style>
-        /* --- CSS NATIVE (Yellow & Orange Theme) --- */
         :root {
-            --primary-bg: #FFFBE9;    /* Warna utama (krem) */
-            --secondary-bg: #FFFFDC;  /* Warna sekunder (kuning pucat) */
-            --accent-orange: #F28B2A; /* Warna tombol & aksen */
+            --primary-bg: #FFFBE9;    
+            --secondary-bg: #FFFFDC;  
+            --accent-orange: #F28B2A; 
             --text-color: #5d5d5d;
             --white: #ffffff;
             --border-color: #f0ead2;
@@ -28,7 +63,6 @@
             color: var(--text-color);
         }
 
-        /* Sidebar Styling */
         .sidebar {
             width: 260px;
             height: 100vh;
@@ -73,7 +107,6 @@
             box-shadow: 0 4px 10px rgba(242, 139, 42, 0.2);
         }
 
-        /* Main Content Styling */
         .main-content {
             margin-left: 260px;
             padding: 40px;
@@ -110,7 +143,6 @@
             background-color: #e67e17;
         }
 
-        /* Grid Produk */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -170,21 +202,14 @@
             font-size: 13px;
             padding: 0;
             font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-delete:hover {
             text-decoration: underline;
         }
 
-        /* Recent Activity Section */
-        .recent-activity {
-            background: var(--white);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
-        }
-
-        /* Modal Styling */
         .modal {
             display: none;
             position: fixed;
@@ -202,12 +227,6 @@
             margin: 80px auto;
             padding: 30px;
             border-radius: 20px;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
         }
 
         .modal-content input, .modal-content textarea {
@@ -234,166 +253,66 @@
     <aside class="sidebar">
         <div class="logo">Joybite</div>
         <ul class="nav-menu">
-            <li class="nav-item">Dashboard</li>
-            <li class="nav-item">Manajemen Stok</li>
+            <li class="nav-item" onclick="window.location.href='user_admin.php'">Manajemen User</li>
             <li class="nav-item active">Validasi Produk</li>
-            <li class="nav-item">Analytics</li>
-            <li class="nav-item">Pengaturan</li>
             <li class="nav-item" onclick="logout()" style="color: #d9534f; margin-top: 30px; font-weight: bold;">Logout</li>
         </ul>
     </aside>
 
     <main class="main-content">
         <header>
-            <h1>Product Validation</h1>
+            <h1>Product Validation (Full PHP)</h1>
             <button class="btn-add" onclick="openModal()">+ Tambah Produk</button>
         </header>
 
-        <section class="product-grid" id="productContainer">
-            </section>
-
-        <section class="recent-activity">
-            <h3>Recent Activity</h3>
-            <div id="activityLog">
-                <p style="color: #bbb;">Belum ada aktivitas baru.</p>
-            </div>
+        <section class="product-grid">
+            <?php if (empty($products)): ?>
+                <p>Tidak ada produk untuk divalidasi.</p>
+            <?php else: ?>
+                <?php foreach ($products as $p): ?>
+                    <div class="product-card">
+                        <div class="image-placeholder"></div>
+                        <h3><?= htmlspecialchars($p['nama_produk']) ?></h3>
+                        <div class="store-name"><?= htmlspecialchars($p['nama_toko']) ?></div>
+                        <span class="status-badge"><?= htmlspecialchars($p['status']) ?></span>
+                        <p style="font-size: 14px; line-height: 1.5; color: #666; margin-top: 10px;"><?= htmlspecialchars($p['deskripsi']) ?></p>
+                        <a href="validasi.php?delete_id=<?= $p['id_validasi'] ?>" class="btn-delete" onclick="return confirm('Yakin ingin menghapus produk ini?')">Hapus Produk</a>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </section>
     </main>
 
     <div id="productModal" class="modal">
         <div class="modal-content">
             <h2 style="color: var(--accent-orange); margin-top: 0;">Tambah Produk</h2>
-            <input type="text" id="inputNama" placeholder="Nama Produk">
-            <input type="text" id="inputToko" placeholder="Nama Toko">
-            <textarea id="inputDeskripsi" rows="4" placeholder="Deskripsi Produk"></textarea>
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="closeModal()">Batal</button>
-                <button class="btn-save" onclick="handleSave()">Simpan</button>
-            </div>
+            <form action="validasi.php" method="POST">
+                <input type="text" name="nama_produk" placeholder="Nama Produk" required>
+                <input type="text" name="nama_toko" placeholder="Nama Toko" required>
+                <textarea name="deskripsi" rows="4" placeholder="Deskripsi Produk"></textarea>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Batal</button>
+                    <button type="submit" name="tambah_produk" class="btn-save">Simpan</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        const API_URL = 'validasi_api.php'; 
-
-        async function fetchProducts() {
-            try {
-                const response = await fetch(API_URL);
-                const products = await response.json();
-                renderProducts(products);
-            } catch (error) {
-                console.error("Gagal mengambil data:", error);
-            }
-        }
-
-        function renderProducts(products) {
-            const container = document.getElementById('productContainer');
-            container.innerHTML = '';
-
-            if (products.length === 0) {
-                container.innerHTML = '<p>Tidak ada produk untuk divalidasi.</p>';
-                return;
-            }
-
-            products.forEach(p => {
-                const card = `
-                    <div class="product-card">
-                        <div class="image-placeholder"></div>
-                        <h3>${p.nama_produk}</h3>
-                        <div class="store-name">${p.nama_toko}</div>
-                        <span class="status-badge">${p.status}</span>
-                        <p style="font-size: 14px; line-height: 1.5; color: #666; margin-top: 10px;">${p.deskripsi}</p>
-                        <button class="btn-delete" onclick="deleteProduct(${p.id_validasi}, '${p.nama_produk}')">Hapus Produk</button>
-                    </div>
-                `;
-                container.innerHTML += card;
-            });
-        }
-
-        async function handleSave() {
-            const nama = document.getElementById('inputNama').value;
-            const toko = document.getElementById('inputToko').value;
-            const deskripsi = document.getElementById('inputDeskripsi').value;
-
-            if (!nama || !toko) {
-                alert("Mohon isi Nama Produk dan Toko!");
-                return;
-            }
-
-            const payload = {
-                nama_produk: nama,
-                nama_toko: toko,
-                deskripsi: deskripsi
-            };
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    closeModal();
-                    fetchProducts();
-                    addActivity(`Produk baru "${nama}" berhasil ditambahkan.`);
-                    document.getElementById('inputNama').value = '';
-                    document.getElementById('inputToko').value = '';
-                    document.getElementById('inputDeskripsi').value = '';
-                }
-            } catch (error) {
-                console.error("Gagal menyimpan:", error);
-            }
-        }
-
-        async function deleteProduct(id, name) {
-            if (confirm(`Apakah Anda yakin ingin menghapus "${name}"?`)) {
-                try {
-                    const response = await fetch(`${API_URL}?id=${id}`, { 
-                        method: 'DELETE' 
-                    });
-
-                    if (response.ok) {
-                        fetchProducts();
-                        addActivity(`Produk "${name}" telah dihapus.`);
-                    }
-                } catch (error) {
-                    console.error("Gagal menghapus:", error);
-                }
-            }
-        }
-
         function openModal() { document.getElementById('productModal').style.display = 'block'; }
         function closeModal() { document.getElementById('productModal').style.display = 'none'; }
-
-        function addActivity(message) {
-            const logContainer = document.getElementById('activityLog');
-            const now = new Date().toLocaleTimeString();
-            const newLog = `<p style="font-size: 13px; border-left: 3px solid var(--accent-orange); padding-left: 10px; margin-bottom: 8px;">
-                                <strong>${now}</strong> - ${message}
-                            </p>`;
-            if (logContainer.innerText.includes("Belum ada")) logContainer.innerHTML = '';
-            logContainer.innerHTML = newLog + logContainer.innerHTML;
-        }
-
-        window.onload = fetchProducts;
-
         window.onclick = function(event) {
             const modal = document.getElementById('productModal');
             if (event.target == modal) closeModal();
         }
-
         function logout() {
             if(confirm("Apakah Anda yakin ingin keluar?")) {
-                // Hapus data login dari browser
-                localStorage.removeItem("isLoggedIn");
-                localStorage.removeItem("role");
-                localStorage.removeItem("id_user");
-                localStorage.removeItem("username");
-                
-                // Arahkan kembali ke halaman login utama
+                localStorage.clear();
                 window.location.href = "../login.html";
             }
+        }
+        if(localStorage.getItem("role") !== "admin") {
+            window.location.href = "../login.html";
         }
     </script>
 </body>
