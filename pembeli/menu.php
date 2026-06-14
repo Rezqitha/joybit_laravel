@@ -58,7 +58,7 @@
         <a href="#"><span class="material-symbols-outlined">menu_book</span> Menu</a>
         <div class="search-bar">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" placeholder="cari disini...">
+            <input type="text" id="searchInput" placeholder="cari disini..." onkeyup="searchMenu(event)">
         </div>
     </nav>
 <div style="display: flex; gap: 20px;">
@@ -104,8 +104,8 @@
         }
     }
 
-    const MENU_API = 'produk.php';
-    const CART_API = 'cart.php';
+    const MENU_API = 'produk_api.php';
+    const CART_API = 'cart_api.php';
 
     async function fetchMenu() {
         try {
@@ -159,6 +159,23 @@
             alert(result.message);
         } catch (err) {
             alert("Gagal menambahkan ke keranjang");
+        }
+    }
+
+    async function searchMenu(e) {
+        if (e.key === 'Enter') {
+            const keyword = document.getElementById('searchInput').value;
+            try {
+                const response = await fetch(MENU_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keyword: keyword })
+                });
+                const data = await response.json();
+                renderMenu(data);
+            } catch (err) {
+                console.error("Gagal mencari menu:", err);
+            }
         }
     }
 

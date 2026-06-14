@@ -9,7 +9,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':    
-        $queryString = "SELECT * FROM keranjang";
+        $queryString = "SELECT k.*, p.gambar FROM keranjang k LEFT JOIN produk p ON k.nama_dessert = p.nama_produk";
         $query = mysqli_query($conn, $queryString);
         
         $data = [];

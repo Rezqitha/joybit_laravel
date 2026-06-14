@@ -251,7 +251,7 @@
         }
     }
 
-    const API_URL = 'cart.php'; 
+    const API_URL = 'cart_api.php'; 
 
     async function loadCart() {
         try {
@@ -281,12 +281,12 @@
             const itemSubtotal = parseInt(item.harga) * parseInt(item.jumlah);
             subtotal += itemSubtotal;
 
-            const prompt = `delicious ${item.nama_dessert} dessert, high resolution, food photography`;
-            const aiImageURL = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=400&height=400&nologo=true`;
+            // Gunakan gambar dari database jika ada, jika tidak gunakan placeholder yang stabil
+            const imgSrc = item.gambar ? `images/${item.gambar}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama_dessert)}&background=F4D03F&color=333&size=400`;
 
             html += `
             <div class="cart-item">
-                <img src="${aiImageURL}" class="item-img" alt="${item.nama_dessert}" loading="lazy">
+                <img src="${imgSrc}" class="item-img" alt="${item.nama_dessert}" loading="lazy">
                 <div class="item-info">
                     <h4>${item.nama_dessert}</h4>
                     <p>Dessert JoyBite Premium</p>
